@@ -430,7 +430,7 @@ app.get('/', (req, res) => {
 
 // Rota para docs.html
 app.get('/docs', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'docs.html'));
+    res.sendFile(path.join(__dirname, './public/docs/index.html'));
 });
 
 // Servir arquivos estáticos
