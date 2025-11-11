@@ -57,7 +57,7 @@ const snackRouter = require("./arquivos/snackvideo");
 const frasesanime = require("./arquivos/frasesanime");
 const pinterestRouter = require('./arquivos/Pinterest');
 const hentaiRouter = require("./arquivos/hentai");
-
+const scpRoute = require("./routes/neext/scp");
 const instagramRoute = require("./arquivos/Instagram2");
 
 // Usar a rota
@@ -318,7 +318,7 @@ app.use("/danbooru", danbooruRouter);
 app.use('/chatz', require('./arquivos/chatz'));
 const anilistRoute = require('./arquivos/anilist');
 app.use("/mediafire", mediafire);
-
+app.use("/scp", scpRoute);
 app.use('/anilist', anilistRoute);
 
 app.use("/youtube2", youtube2);
