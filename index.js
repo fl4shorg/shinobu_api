@@ -9,6 +9,7 @@ const app = express();
 const path = require('path');
 const { searchRouter, downloadRouter } = require('./arquivos/xvideos');
 const loliRouter = require('./arquivos/loli');
+const stalkerTwitter = require('./arquivos/stalktwitter');
 const yandereRouter = require('./arquivos/yande.re')
 const bratvideo = require("./arquivos/bratvideo");
 const { banner, banner2, colors, statusColor } = require('./assets/function');
@@ -92,6 +93,7 @@ const xnxx = require("./arquivos/xnxx");
 const catboxRouter = require('./upload/catbox');
 const sfmcompile = require("./arquivos/sfmcompile");
 const lyricssearch = require("./arquivos/lyricssearch");
+const kwaistalkerRouter = require('./arquivos/kwaistalker');
 const danbooruRouter = require("./arquivos/danbooru")
 const espnRouter = require('./arquivos/espn');
 const nexoRouter = require('./arquivos/nexojornal');
@@ -156,6 +158,7 @@ const letraRouter = require("./arquivos/letramusic.js");
 
 const rastreioRouter = require("./arquivos/rastreiacorreio");
 const estadaoRouter = require('./arquivos/estadao'); // ajuste o caminho
+const themoviedb = require('./arquivos/themoviedb');
 const flamingtext = require("./canvas/flamingtext");
 const antiporno = require("./arquivos/antiporno");
 const logoSupreme = require('./canvas/logosupreme');
@@ -189,7 +192,9 @@ app.use("/pesquisa/deezer", deezer);
 //Categoria offline
 app.use(pinterestLens);
 app.use('/canvas/logosupreme', logoSupreme);
+app.use('/kwaistalker', kwaistalkerRouter);
 app.use('/canvas/twitterbiden', twitterBiden);
+app.use('/tmdb', themoviedb);
 app.use('/simbolos', simbolos);
 app.use("/pesquisa/significadonome", significadonomeRouter);
 app.use("/book", bookRouter);
@@ -261,6 +266,8 @@ app.use("/ping", ping);
 app.use('/tools/proxy', require('./arquivos/proxy'));
 app.use('/tools/fakepessoa', require('./arquivos/fakepessoa'));
 app.use('/pesquisa/wikipedia2', require('./arquivos/wikipedia2'));
+app.use('/stalker/twitter', stalkerTwitter);
+
 app.use('/api/ytranscript', require('./arquivos/ytranscript'));
 app.use('/download/capcut2', require('./arquivos/capcut2'));
 app.use('/stalk/stalkroblox', require('./arquivos/stalkroblox'));
