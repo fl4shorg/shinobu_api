@@ -9,6 +9,7 @@ const app = express();
 const path = require('path');
 const { searchRouter, downloadRouter } = require('./arquivos/xvideos');
 const loliRouter = require('./arquivos/loli');
+const animefinder = require("./arquivos/animefinder");
 const stalkerTwitter = require('./arquivos/stalktwitter');
 const yandereRouter = require('./arquivos/yande.re')
 const bratvideo = require("./arquivos/bratvideo");
@@ -86,7 +87,8 @@ const igStalkHandler = require('./arquivos/igstalk');
 const attpRoute = require('./arquivos/attp');
 
 // Usando a rota: /attp
-const mercadolivreRouter = require("./arquivos/mercadolivre");
+const mercadolivre = require("./arquivos/mercadolivre");
+app.use("/mercadolivre", mercadolivre);
 
 
 const xnxx = require("./arquivos/xnxx");
@@ -187,7 +189,7 @@ app.use("/bluesticker", require("./figurinhas/bluesticker"));
 app.use('/download', kwai);      
 app.use("/metadinha", metadinha);
 
-app.use("/download/pornhub", pornhub);
+app.use("/", pornhub);
 app.use("/pesquisa/deezer", deezer);
 //Categoria offline
 app.use(pinterestLens);
@@ -228,7 +230,9 @@ app.use("/conselho2", conselho2Router);
 app.use("/encurtar", encurtaRouter);
 app.use("/cep", cepRouter);
 app.use("/cantadas", cantadasRouter);
-app.use("/mercadolivre", mercadolivreRouter);
+
+
+app.use("/animefinder", animefinder);
 app.use("/signo", signo); // <-- ro
 app.use("/photooxy", photooxyRouter);
 app.use("/api/tiktok", tiktokSearch);
@@ -241,7 +245,7 @@ app.use("/", gdlink);
 app.use('/jornal/estadao', estadaoRouter);
 
 // Usar com app.use no mesmo estilo dos outros
-
+app.use("/search/steam", require("./arquivos/steam"));
 app.use("/api/tools/skiplink", skiplink);
 app.use("/tools/antiporno", antiporno);
 app.use("/tools/correio", rastreioRouter);
@@ -275,8 +279,9 @@ app.use('/api/google', require('./arquivos/google'));
 app.use('/pesquisa/googleimage', require('./arquivos/googleimage'));
 app.use("/dicionario", require("./arquivos/dicionario"));
 app.use('/pesquisa/reels', require('./arquivos/reels'));
-app.use('/api/apk/happymod', require('./arquivos/happymod'));
+app.use('/search/happymod', require('./arquivos/happymod'));
 app.use("/jornal/noticias", noticiasRouter);
+app.use("/search/aptoide", require("./arquivos/aptoide"));
 app.use('/pesquisa/fdroid', require('./arquivos/fdroid'));
 app.use('/pesquisa/pinterest2', require('./arquivos/Pinterest2'));
 app.use("/apple", require("./arquivos/apple")); // 🔹 nova rota Apple Music Downloader

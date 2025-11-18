@@ -1,64 +1,71 @@
+// arquivos/mercadolivre.js
 const express = require("express");
 const axios = require("axios");
-
+const cheerio = require("cheerio");
 const router = express.Router();
 
-// Função para buscar produtos no Mercado Livre
-const MercadoLivreSearch = async (keyword, maxItems = 10) => {
-    if (!keyword) throw new Error("O parâmetro 'keyword' é obrigatório");
+// Função para remover acentos
+function removerAcentos(text) {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 
-    try {
-        const res = await axios.get("https://api.mercadolibre.com/sites/MLB/search", {
-            params: { q: keyword, limit: maxItems },
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "application/json"
-            }
-        });
+// Função para limpar espaços extras e quebras de linha
+function limparTexto(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-        const resultados = res.data.results.map(item => ({
-            produto: item.title,
-            valor: `R$ ${item.price}`,
-            link: item.permalink,
-            imagem: item.thumbnail
-        }));
+// Função principal de pesquisa no Mercado Livre
+const MercadoLivreSearch = (q) => new Promise(async (resolve, reject) => {
+  try {
+    const response = await axios.get(`https://lista.mercadolivre.com.br/${removerAcentos(q)}`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+      }
+    });
 
-        return {
-            status: 200,
-            criador: "Seu Nome",
-            resultado: resultados
-        };
+    const $ = cheerio.load(response.data);
+    const dados = [];
 
-    } catch (err) {
-        const details = err.response?.data || err.message || err;
-        throw new Error(JSON.stringify(details));
-    }
-};
+    $('li.ui-search-layout__item').each((i, e) => {
+      const produto = limparTexto($(e).find('h2.ui-search-item__title').text());
+      const imagem = $(e).find('img.ui-search-result-image__element').attr('data-src') 
+                     || $(e).find('img.ui-search-result-image__element').attr('src');
+      const precoInteiro = $(e).find('span.price-tag-fraction').text()?.trim();
+      const precoDecimal = $(e).find('span.price-tag-cents').text()?.trim();
+      const valor = precoInteiro ? `R$ ${precoInteiro}${precoDecimal ? ',' + precoDecimal : ''}` : null;
+      const link = $(e).find('a.ui-search-link').attr('href');
 
-// Rota GET /search
-router.get("/search", async (req, res) => {
-    const { q, maxItems } = req.query;
-    if (!q) return res.status(400).json({ error: "Parâmetro 'q' é obrigatório" });
+      if (produto && imagem && valor && link) {
+        dados.push({ produto, imagem, valor, link });
+      }
+    });
 
-    try {
-        const resultado = await MercadoLivreSearch(q, Number(maxItems) || 10);
-        res.json(resultado);
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao buscar produtos", details: err.message });
-    }
+    resolve({
+      status: 200,
+      criador: "SeuNomeAqui",
+      resultado: dados
+    });
+
+  } catch (err) {
+    reject(err);
+  }
 });
 
-// Rota GET /top10 (usa maxItems=10)
-router.get("/top10", async (req, res) => {
-    const { q } = req.query;
-    if (!q) return res.status(400).json({ error: "Parâmetro 'q' é obrigatório" });
+// Rota GET /mercadolivre?search=...
+router.get("/", async (req, res) => {
+  const search = req.query.search;
+  if (!search) return res.status(400).json({ status: false, message: "Parâmetro ?search= está faltando" });
 
-    try {
-        const resultado = await MercadoLivreSearch(q, 10);
-        res.json(resultado);
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao buscar top 10", details: err.message });
-    }
+  try {
+    const resultado = await MercadoLivreSearch(search);
+    res.json(resultado);
+  } catch (err) {
+    console.error("Erro Mercado Livre:", err);
+    res.status(500).json({ status: false, message: "Erro interno no servidor" });
+  }
 });
 
 module.exports = router;
