@@ -9,7 +9,7 @@ const app = express();
 const path = require('path');
 const { searchRouter, downloadRouter } = require('./arquivos/xvideos');
 const loliRouter = require('./arquivos/loli');
-const lyricsRouter = require('./arquivos/lyrics')
+const lyricsRouter2 = require('./arquivos/lyrics')
 const animefinder = require("./arquivos/animefinder");
 const stalkerTwitter = require('./arquivos/stalktwitter');
 const yandereRouter = require('./arquivos/yande.re')
@@ -185,7 +185,7 @@ app.use('/attp', attpRoute);
 app.use("/letramusic", letraRouter);
 app.use("/nsfwhub", nsfwhub);
 app.use('/canvas/pikachumeme', pikachuMeme);
-app.use('/lyrics', lyricsRouter);
+app.use('/lyrics', lyricsRouter2);
 app.use('/canvas/drakememe', drakeMeme);
 app.use('/canvas/poohmeme', poohMeme);
 app.use("/audiomeme", audiomeme);
