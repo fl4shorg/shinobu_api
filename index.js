@@ -9,6 +9,7 @@ const app = express();
 const path = require('path');
 const { searchRouter, downloadRouter } = require('./arquivos/xvideos');
 const loliRouter = require('./arquivos/loli');
+const lyricsRouter = require('./arquivos/lyrics')
 const animefinder = require("./arquivos/animefinder");
 const stalkerTwitter = require('./arquivos/stalktwitter');
 const yandereRouter = require('./arquivos/yande.re')
@@ -16,6 +17,7 @@ const bratvideo = require("./arquivos/bratvideo");
 const { banner, banner2, colors, statusColor } = require('./assets/function');
 const consulta = require("./arquivos/consulta");
 const gdlink = require("./arquivos/gdlink");
+const lyricsRouter = require('./arquivos/lyrics')
 
 
 const twitter = require("./arquivos/twitter");
@@ -183,6 +185,7 @@ app.use('/attp', attpRoute);
 app.use("/letramusic", letraRouter);
 app.use("/nsfwhub", nsfwhub);
 app.use('/canvas/pikachumeme', pikachuMeme);
+app.use('/lyrics', lyricsRouter);
 app.use('/canvas/drakememe', drakeMeme);
 app.use('/canvas/poohmeme', poohMeme);
 app.use("/audiomeme", audiomeme);
