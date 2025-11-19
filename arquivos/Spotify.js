@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-const cheerio = require('cheerio');
 const router = express.Router();
 
 const API_NOTE = {
@@ -8,24 +7,84 @@ const API_NOTE = {
   instagram: '@neet.tk'
 };
 
-// Função auxiliar para requisições externas
-const callExternal = async (url, opts = {}) => {
+// Função para download via FabDL
+async function scrapeSpotify(url) {
   try {
-    const response = await axios({
-      url,
-      method: opts.method || 'get',
-      params: opts.params || {},
-      timeout: opts.timeout || 15000
-    });
-    return response.data;
-  } catch (err) {
-    const msg = err.response?.data || err.message || 'Erro na requisição externa';
-    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    const initialResponse = await axios.get(
+      `https://api.fabdl.com/spotify/get?url=${encodeURIComponent(url)}`,
+      {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Chromium\";v=\"116\"",
+          "sec-ch-ua-mobile": "?1",
+          "sec-ch-ua-platform": "\"Android\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          Referer: "https://spotifydownload.org/",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+        },
+      },
+    );
+
+    const { result } = initialResponse.data;
+    const trackId = result.type === "album" ? result.tracks[0].id : result.id;
+
+    const convertResponse = await axios.get(
+      `https://api.fabdl.com/spotify/mp3-convert-task/${result.gid}/${trackId}`,
+      {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Chromium\";v=\"116\"",
+          "sec-ch-ua-mobile": "?1",
+          "sec-ch-ua-platform": "\"Android\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          Referer: "https://spotifydownload.org/",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+        },
+      },
+    );
+
+    const tid = convertResponse.data.result.tid;
+    const progressResponse = await axios.get(
+      `https://api.fabdl.com/spotify/mp3-convert-progress/${tid}`,
+      {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Chromium\";v=\"116\"",
+          "sec-ch-ua-mobile": "?1",
+          "sec-ch-ua-platform": "\"Android\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          Referer: "https://spotifydownload.org/",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+        },
+      },
+    );
+
+    return {
+      title: result.name,
+      type: result.type,
+      artists: result.artists,
+      duration: result.type === "album" ? result.tracks[0].duration_ms : result.duration_ms,
+      image: result.image,
+      download_url: `https://api.fabdl.com${progressResponse.data.result.download_url}`,
+      status: progressResponse.data.result.status,
+    };
+  } catch (error) {
+    console.error("Spotify download error:", error);
+    throw new Error("Failed to download from Spotify");
   }
-};
+}
 
 /* =====================================================
-   🔽 DOWNLOAD DE MÚSICA SPOTIFY (via Spotmate)
+   🔽 DOWNLOAD DE MÚSICA SPOTIFY (FabDL)
    ROTA:
    GET /download/spotify/download?url=LINK
    ===================================================== */
@@ -41,49 +100,14 @@ router.get('/download', async (req, res) => {
   }
 
   try {
-    if (!spotifyUrl.includes('open.spotify.com')) throw new Error('URL inválida.');
+    const data = await scrapeSpotify(spotifyUrl);
 
-    // Pega HTML inicial para cookies e token CSRF
-    const respostaRynn = await axios.get('https://spotmate.online/', {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
-
-    const $ = cheerio.load(respostaRynn.data);
-
-    const api = axios.create({
-      baseURL: 'https://spotmate.online',
-      headers: {
-        cookie: respostaRynn.headers['set-cookie'].join('; '),
-        'content-type': 'application/json',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'x-csrf-token': $('meta[name="csrf-token"]').attr('content')
-      }
-    });
-
-    // Chama API interna do Spotmate
-    const [{ data: metadados }, { data: download }] = await Promise.all([
-      api.post('/getTrackData', { spotify_url: spotifyUrl }),
-      api.post('/convert', { urls: spotifyUrl })
-    ]);
-
-    // Resposta final
     return res.status(200).json({
       ...API_NOTE,
       status: 'success',
-      message: 'Música encontrada e baixada com sucesso',
-      result: {
-        title: metadados.title,
-        artists: metadados.artistNames,
-        duration: metadados.duration,
-        year: metadados.year,
-        spotify_url: spotifyUrl,
-        download_url: download.url,
-        thumbnail: metadados.albumImage
-      }
+      message: 'Música obtida com sucesso',
+      result: data
     });
-
   } catch (error) {
     return res.status(500).json({
       ...API_NOTE,
@@ -142,7 +166,7 @@ router.get('/search', async (req, res) => {
 });
 
 /* =====================================================
-   ▶ PLAYSPOTIFY (pesquisa + download via Spotmate)
+   ▶ PLAYSPOTIFY (pesquisa + download FabDL)
    ROTA:
    GET /download/spotify/playspotify?q=NOME
    ===================================================== */
@@ -175,29 +199,8 @@ router.get('/playspotify', async (req, res) => {
     const first = searchData.results[0];
     const trackUrl = first.link;
 
-    // Download usando Spotmate
-    const respostaRynn = await axios.get('https://spotmate.online/', {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
-
-    const $ = cheerio.load(respostaRynn.data);
-
-    const api = axios.create({
-      baseURL: 'https://spotmate.online',
-      headers: {
-        cookie: respostaRynn.headers['set-cookie'].join('; '),
-        'content-type': 'application/json',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'x-csrf-token': $('meta[name="csrf-token"]').attr('content')
-      }
-    });
-
-    const [{ data: metadados }, { data: download }] = await Promise.all([
-      api.post('/getTrackData', { spotify_url: trackUrl }),
-      api.post('/convert', { urls: trackUrl })
-    ]);
+    // Download via FabDL
+    const data = await scrapeSpotify(trackUrl);
 
     return res.status(200).json({
       ...API_NOTE,
@@ -205,13 +208,8 @@ router.get('/playspotify', async (req, res) => {
       message: 'Música encontrada e baixada com sucesso',
       result: {
         search_name: query,
-        title: metadados.title,
-        artists: metadados.artistNames,
-        duration: metadados.duration,
-        year: metadados.year,
-        spotify_url: trackUrl,
-        download_url: download.url,
-        thumbnail: metadados.albumImage
+        ...data,
+        spotify_url: trackUrl
       }
     });
 
