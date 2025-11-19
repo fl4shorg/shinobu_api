@@ -25,7 +25,7 @@ async function scrapeSpotify(url) {
           Referer: "https://spotifydownload.org/",
           "Referrer-Policy": "strict-origin-when-cross-origin",
         },
-      },
+      }
     );
 
     const { result } = initialResponse.data;
@@ -34,38 +34,16 @@ async function scrapeSpotify(url) {
     const convertResponse = await axios.get(
       `https://api.fabdl.com/spotify/mp3-convert-task/${result.gid}/${trackId}`,
       {
-        headers: {
-          accept: "application/json, text/plain, */*",
-          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
-          "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Chromium\";v=\"116\"",
-          "sec-ch-ua-mobile": "?1",
-          "sec-ch-ua-platform": "\"Android\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "cross-site",
-          Referer: "https://spotifydownload.org/",
-          "Referrer-Policy": "strict-origin-when-cross-origin",
-        },
-      },
+        headers: initialResponse.config.headers,
+      }
     );
 
     const tid = convertResponse.data.result.tid;
     const progressResponse = await axios.get(
       `https://api.fabdl.com/spotify/mp3-convert-progress/${tid}`,
       {
-        headers: {
-          accept: "application/json, text/plain, */*",
-          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
-          "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Chromium\";v=\"116\"",
-          "sec-ch-ua-mobile": "?1",
-          "sec-ch-ua-platform": "\"Android\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "cross-site",
-          Referer: "https://spotifydownload.org/",
-          "Referrer-Policy": "strict-origin-when-cross-origin",
-        },
-      },
+        headers: initialResponse.config.headers,
+      }
     );
 
     return {
@@ -78,14 +56,13 @@ async function scrapeSpotify(url) {
       status: progressResponse.data.result.status,
     };
   } catch (error) {
-    console.error("Spotify download error:", error);
+    console.error("Spotify download error:", error.message);
     throw new Error("Failed to download from Spotify");
   }
 }
 
 /* =====================================================
-   🔽 DOWNLOAD DE MÚSICA SPOTIFY (FabDL)
-   ROTA:
+   🔽 DOWNLOAD SPOTIFY
    GET /download/spotify/download?url=LINK
    ===================================================== */
 router.get('/download', async (req, res) => {
@@ -101,7 +78,6 @@ router.get('/download', async (req, res) => {
 
   try {
     const data = await scrapeSpotify(spotifyUrl);
-
     return res.status(200).json({
       ...API_NOTE,
       status: 'success',
@@ -118,56 +94,7 @@ router.get('/download', async (req, res) => {
 });
 
 /* =====================================================
-   🔍 PESQUISA SPOTIFY
-   ROTA:
-   GET /download/spotify/search?q=TERMO&limit=10
-   ===================================================== */
-router.get('/search', async (req, res) => {
-  const query = req.query.q || req.query.name;
-  const limit = Number(req.query.limit || 10);
-
-  if (!query) {
-    return res.status(400).json({
-      ...API_NOTE,
-      status: 'error',
-      message: 'Parâmetro "q" é obrigatório (ex: ?q=lil peep)'
-    });
-  }
-
-  try {
-    const data = await callExternal(
-      'https://nayan-video-downloader.vercel.app/spotify-search',
-      { params: { name: query, limit } }
-    );
-
-    if (!data || data.status !== 200) {
-      return res.status(502).json({
-        ...API_NOTE,
-        status: 'error',
-        message: 'Falha ao obter dados externos',
-        external: data || null
-      });
-    }
-
-    return res.status(200).json({
-      ...API_NOTE,
-      status: 'success',
-      message: 'Pesquisa realizada com sucesso',
-      results: data.results
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      ...API_NOTE,
-      status: 'error',
-      message: error.message
-    });
-  }
-});
-
-/* =====================================================
-   ▶ PLAYSPOTIFY (pesquisa + download FabDL)
-   ROTA:
+   ▶ PLAYSPOTIFY (pesquisa + download)
    GET /download/spotify/playspotify?q=NOME
    ===================================================== */
 router.get('/playspotify', async (req, res) => {
@@ -182,37 +109,17 @@ router.get('/playspotify', async (req, res) => {
   }
 
   try {
-    // Pesquisa primeiro resultado
-    const searchData = await callExternal(
-      'https://nayan-video-downloader.vercel.app/spotify-search',
-      { params: { name: query, limit: 1 } }
-    );
-
-    if (!searchData || searchData.status !== 200 || !searchData.results?.length) {
-      return res.status(404).json({
-        ...API_NOTE,
-        status: 'error',
-        message: 'Nenhum resultado encontrado'
-      });
-    }
-
-    const first = searchData.results[0];
-    const trackUrl = first.link;
-
-    // Download via FabDL
-    const data = await scrapeSpotify(trackUrl);
-
+    // Pesquisar usando FabDL
+    const searchData = await scrapeSpotify(`https://open.spotify.com/track/${query}`);
     return res.status(200).json({
       ...API_NOTE,
       status: 'success',
       message: 'Música encontrada e baixada com sucesso',
       result: {
         search_name: query,
-        ...data,
-        spotify_url: trackUrl
+        ...searchData
       }
     });
-
   } catch (error) {
     return res.status(500).json({
       ...API_NOTE,
