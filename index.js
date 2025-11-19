@@ -9,6 +9,7 @@ const app = express();
 const path = require('path');
 const { searchRouter, downloadRouter } = require('./arquivos/xvideos');
 const loliRouter = require('./arquivos/loli');
+const doramasRoutes = require('./arquivos/doramas');
 const lyricsRouter2 = require('./arquivos/lyrics')
 const animefinder = require("./arquivos/animefinder");
 const stalkerTwitter = require('./arquivos/stalktwitter');
@@ -247,7 +248,7 @@ app.use("/jornal/uol", uol);
 app.use("/", likevideo);
 app.use("/", gdlink);
 app.use('/jornal/estadao', estadaoRouter);
-
+app.use('/doramas', doramasRoutes);
 // Usar com app.use no mesmo estilo dos outros
 app.use("/search/steam", require("./arquivos/steam"));
 app.use("/api/tools/skiplink", skiplink);

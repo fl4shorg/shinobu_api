@@ -42,12 +42,19 @@ class ScrapperData {
           if (start !== -1 && end !== -1 && start < end) {
             const jsonString = response.slice(start + 1, end);
             const jsonData = JSON.parse(jsonString);
+
             const result = await Promise.all(jsonData.response.docs.map(async (doc) => {
               const responseSong = await this.getHTML(`https://www.letras.mus.br/${doc.dns || ''}/${doc.url || doc.urlal || ''}/`);
               const $ = cheerio.load(responseSong);
               const imgSet = $('.thumbnail img').attr('srcset');
               const img = imgSet ? imgSet.split(', ')[1].split(' ')[0] : null;
-              const lyrics = $('.lyric-original p').map((i, el) => $(el).html().replace(/<br\/?>/g, '\n')).get().join('\n\n');
+
+              // Remove quebras de linha das letras
+              const lyrics = $('.lyric-original p')
+                .map((i, el) => $(el).html().replace(/<br\/?>/g, ' '))
+                .get()
+                .join(' ');
+
               return { 
                 ...doc,
                 img,
@@ -55,6 +62,7 @@ class ScrapperData {
                 lyrics
               };
             }));
+
             if (result.length === 0) return reject('Nenhum resultado encontrado.');
             return resolve(result);
           }
@@ -79,19 +87,18 @@ router.get('/search', async (req, res) => {
 
   try {
     const result = await ScrapperData.Lyrics(query);
-    if (!result || result.length === 0) {
-      return res.status(404).json({
-        ...API_NOTE,
-        status: 'error',
-        message: 'Nenhum resultado encontrado'
-      });
-    }
+
+    // Remove quebras de linha adicionais (garantia)
+    const cleanResult = result.map(r => ({
+      ...r,
+      lyrics: r.lyrics ? r.lyrics.replace(/\n/g, ' ') : ''
+    }));
 
     return res.status(200).json({
       ...API_NOTE,
       status: 'success',
       message: `Resultados encontrados para "${query}"`,
-      results: result
+      results: cleanResult
     });
   } catch (error) {
     return res.status(500).json({
