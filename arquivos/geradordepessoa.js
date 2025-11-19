@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
 
         res.json({
             status: 200,
-            criador: "Seu Nome",
+            criador: "NEEXT LTDA",
             resultado: response.data
         });
     } catch (err) {
