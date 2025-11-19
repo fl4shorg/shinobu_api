@@ -1,5 +1,6 @@
 // arquivos/SoundMP3.js  
 // • Scrape SoundMP3 Downloader + Pesquisa SoundCloud usando scdl-core • Neext  
+// • Compatível com Vercel (serverless)  
 
 const express = require('express');
 const router = express.Router();
@@ -7,16 +8,6 @@ const axios = require('axios');
 const { SoundCloud } = require('scdl-core');
 
 const bitrates = ['128', '192', '320'];
-
-// Inicializa o SoundCloud (scdl-core)
-(async () => {
-  try {
-    await SoundCloud.connect();
-    console.log('scdl-core conectado ao SoundCloud');
-  } catch (err) {
-    console.error('Erro ao conectar scdl-core:', err);
-  }
-})();
 
 // Função de download via soundmp3.cc
 async function soundMP3Downloader(trackUrl, bitrate = '320') {
@@ -89,6 +80,9 @@ router.get('/search', async (req, res) => {
   }
 
   try {
+    // Conecta com client_id da variável de ambiente
+    await SoundCloud.connect({ clientId: process.env.SOUNDCLOUD_CLIENT_ID });
+
     const result = await SoundCloud.search({
       query: q,
       limit: limit ? parseInt(limit) : 10,
@@ -121,7 +115,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// === Rota PlaySoundCloud (apenas 1 resultado + download) ===
+// === Rota PlaySoundCloud (1 resultado + download) ===
 router.get('/playsoundcloud', async (req, res) => {
   const { q, bitrate } = req.query;
 
@@ -133,6 +127,9 @@ router.get('/playsoundcloud', async (req, res) => {
   }
 
   try {
+    // Conecta com client_id da variável de ambiente
+    await SoundCloud.connect({ clientId: process.env.SOUNDCLOUD_CLIENT_ID });
+
     // Pesquisa 1 resultado
     const result = await SoundCloud.search({
       query: q,
