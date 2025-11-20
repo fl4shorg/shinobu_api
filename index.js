@@ -5,6 +5,7 @@ const axios = require('axios');
 const cors = require("cors");
 const cheerio = require("cheerio");
 const fileUpload = require("express-fileupload");
+const { identificarMusica } = require("./arquivos/shazam");
 const app = express();
 const path = require('path');
 const { searchRouter, downloadRouter } = require('./arquivos/xvideos');
@@ -398,6 +399,26 @@ app.use('/yandere', yandereRouter);
 app.use('/random/safebooru', safebooruRouter);
 app.use('/random/e-shuushuu', eshuushuuRouter);
 app.use('/konachan', konachanRouter);
+
+//shazam desenvolvido pela neext \\
+
+app.post("/shazam", async (req, res) => {
+  const caminho = req.body.caminho;
+
+  if (!caminho) {
+    return res.json({ erro: "Envie o caminho do arquivo." });
+  }
+
+  const resultado = await identificarMusica(caminho);
+
+  if (!resultado) {
+    return res.json({ erro: "Falha ao identificar a música." });
+  }
+
+  res.json(resultado);
+});
+
+// fim //
 
 
 
