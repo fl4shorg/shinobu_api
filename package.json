@@ -28,6 +28,7 @@
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
     "fb-downloader-scrapper": "^3.0.1",
+    "formidable": "^3.5.4",
     "genshin-db": "^5.2.5",
     "gm": "^1.25.1",
     "google-libphonenumber": "^3.2.43",
