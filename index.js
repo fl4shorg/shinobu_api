@@ -340,7 +340,7 @@ app.use("/scp", scpRoute);
 app.use('/anilist', anilistRoute);
 
 app.use("/youtube2", youtube2);
-
+app.use(require('./arquivos/telegram'))
 app.use("/api/insta-stalk", instagram2);
 
 app.use('/Myanimelist', malRoutes);
