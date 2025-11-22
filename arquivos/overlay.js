@@ -5,6 +5,7 @@ const router = express.Router();
 
 // Lista de overlays
 const BASE = "https://api.some-random-api.com/canvas/overlay";
+const MISC = "https://api.some-random-api.com/canvas/misc";
 
 const overlays = {
     comunismo: `${BASE}/comrade?avatar=`,
@@ -14,6 +15,12 @@ const overlays = {
     mission: `${BASE}/passed?avatar=`,
     triggered: `${BASE}/triggered?avatar=`,
     wasted: `${BASE}/wasted?avatar=`,
+
+    // Novos endpoints
+    horny: `${MISC}/horny?avatar=`,
+    simpcard: `${MISC}/simpcard?avatar=`,
+    tonikawa: `${MISC}/tonikawa?avatar=`,
+    lolice: `${MISC}/lolice?avatar=`,
 };
 
 // Função de proxy
