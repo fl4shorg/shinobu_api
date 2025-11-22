@@ -194,7 +194,7 @@ app.use("/audiomeme", audiomeme);
 app.use("/bluesticker", require("./figurinhas/bluesticker"));
 app.use('/download', kwai);      
 app.use("/metadinha", metadinha);
-
+app.use("/overlay", require("./arquivos/overlay"));
 app.use("/", pornhub);
 app.use("/pesquisa/deezer", deezer);
 //Categoria offline
@@ -329,6 +329,8 @@ app.use('/chatgpt', require('./arquivos/chatgpt'))
 app.use('/', require('./arquivos/qwen'));
 app.use('/lamacode', lamacodeRouter);
 app.use('/deepseek', require('./arquivos/deepseek'));
+// Rota StickerWA
+app.use("/stickerwa", require("./arquivos/stickerwa"));
 app.use('/', require('./arquivos/ai'));
 app.use("/mp3pm", mp3pm);
 const malRoutes = require('./arquivos/myanimelistsearch');
@@ -342,7 +344,7 @@ app.use('/anilist', anilistRoute);
 app.use("/youtube2", youtube2);
 app.use(require('./arquivos/telegram'))
 app.use("/api/insta-stalk", instagram2);
-
+app.use("/brainly", require("./arquivos/brainly"));
 app.use('/Myanimelist', malRoutes);
 
 const wikiRoutes = require('./arquivos/wiki');
