@@ -187,6 +187,7 @@ app.use('/attp', attpRoute);
 app.use("/letramusic", letraRouter);
 app.use("/nsfwhub", nsfwhub);
 app.use('/canvas/pikachumeme', pikachuMeme);
+app.use('/upload', require('./upload/imgbb'));
 app.use('/lyrics', lyricsRouter2);
 app.use('/canvas/drakememe', drakeMeme);
 app.use('/canvas/poohmeme', poohMeme);
