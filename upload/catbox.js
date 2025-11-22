@@ -4,7 +4,7 @@ const FormData = require('form-data');
 const multer = require('multer');
 
 const router = express.Router();
-const upload = multer(); // recebe arquivos em memória
+const upload = multer(); // recebe arquivos em buffer
 
 class CatboxUploader {
     constructor(isDebug = false) {
@@ -14,9 +14,6 @@ class CatboxUploader {
 
     log = (text) => { if (this.isDebug) console.log('[CatboxUploader]', text); }
 
-    /**
-     * Envia buffer normal para o Catbox
-     */
     uploadBuffer = async (buffer, fileName) => {
         const form = new FormData();
         form.append('reqtype', 'fileupload');
@@ -31,44 +28,39 @@ class CatboxUploader {
 
             this.log('Resposta Catbox: ' + response.data);
 
-            if (!response.data.startsWith('http')) throw new Error('Upload falhou: ' + response.data);
+            if (!response.data.startsWith('http'))
+                throw new Error('Upload falhou: ' + response.data);
+
             return response.data;
         } catch (error) {
             throw new Error('Erro ao enviar para Catbox: ' + error.message);
         }
     }
-
-    /**
-     * Recebe Base64 -> Converte para buffer -> Envia
-     */
-    uploadBase64 = async (base64, fileName = "image.png") => {
-        const buffer = Buffer.from(base64, "base64");
-        return await this.uploadBuffer(buffer, fileName);
-    }
 }
 
 const catbox = new CatboxUploader(true);
 
-/**
- * 🔥 ROTA FINAL:
- * Recebe um arquivo em multipart → converte → envia
- * Funciona no Vercel!
- */
-router.post('/', upload.single('file'), async (req, res) => {
+// ROTA FINAL
+router.post("/", upload.single("file"), async (req, res) => {
     try {
         if (!req.file)
-            return res.status(400).json({ error: 'Arquivo não enviado' });
+            return res.status(400).json({ error: "Nenhum arquivo enviado." });
 
-        // converter buffer para Base64
+        // base64
         const base64 = req.file.buffer.toString("base64");
 
-        // enviar para o Catbox usando base64
-        const link = await catbox.uploadBase64(base64, req.file.originalname);
+        // upload catbox
+        const url = await catbox.uploadBuffer(req.file.buffer, req.file.originalname);
 
-        res.json({ url: link });
+        return res.json({
+            status: true,
+            url,
+            base64
+        });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Erro:", err.message);
+        return res.status(500).json({ error: err.message });
     }
 });
 
