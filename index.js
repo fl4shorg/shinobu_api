@@ -226,7 +226,7 @@ app.use("/jornal/veja", vejaRouter);
 
 app.use("/", terabox);
 app.use("/", bratvideo);
-
+app.use(require("./canvas/pet")); // ← registra o pet.js
 app.use("/jornal/agazeta", aGazeta);
 app.use("/jornal/bbc", bbc);
 app.use("/jornal/terra", terra);
