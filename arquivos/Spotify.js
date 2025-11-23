@@ -1,196 +1,177 @@
-const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
+/**
+ * Spotify API da Neext
+ * Pesquisa + Metadata + Download
+ * Base: spotdown.org
+ */
+
+const express = require("express");
+const axios = require("axios");
 const router = express.Router();
 
 const API_NOTE = {
-  api: 'API desenvolvida pela Neext',
-  instagram: '@neet.tk'
+  api: "API desenvolvida pela Neext",
+  instagram: "@neet.tk"
 };
 
 /* =====================================================
-   Função scrape Spotify via Spotimate
+   🟩 EXTRAI O ID DO LINK DO SPOTIFY
    ===================================================== */
-async function scrapeSpotify(url, turnstileToken) {
+function extractSpotifyID(url) {
+  if (!url) return null;
+  const match = url.match(/track\/([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
+/* =====================================================
+   🟩 1 — Função para pegar METADATA pelo Spotdown.org
+   ===================================================== */
+async function getSongDetails(urlOrName) {
   try {
-    const resHome = await axios.get("https://spotimate.io/");
-    const $ = cheerio.load(resHome.data);
-
-    const tokenInput = $("input[type='hidden']").filter((i, el) => {
-      const name = $(el).attr("name");
-      return name && name.startsWith("_");
-    });
-
-    const tokenName = tokenInput.attr("name");
-    const tokenValue = tokenInput.attr("value");
-
-    const cookies = resHome.headers["set-cookie"];
-    let sessionData = "";
-    if (cookies) {
-      const sessionCookie = cookies.find(c => c.startsWith("session_data="));
-      if (sessionCookie) sessionData = sessionCookie.split(";")[0].split("=")[1];
-    }
-
-    const boundary = "----WebKitFormBoundary" + Math.random().toString(36).substr(2, 16);
-    const formData = [
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="url"`,
-      "",
-      url,
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="${tokenName}"`,
-      "",
-      tokenValue,
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="cf-turnstile-response"`,
-      "",
-      turnstileToken,
-      `--${boundary}--`,
-      ""
-    ].join("\r\n");
-
-    const resApi = await axios.post("https://spotimate.io/action", formData, {
+    const response = await axios.get("https://spotdown.org/api/song-details", {
+      params: { url: urlOrName },
       headers: {
-        "content-type": `multipart/form-data; boundary=${boundary}`,
-        "cookie": `session_data=${sessionData}`,
-        "origin": "https://spotimate.io",
-        "referer": "https://spotimate.io/",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36"
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json"
       }
     });
 
-    const $result = cheerio.load(resApi.data.html || resApi.data);
-
-    const songTitle = $result("h3 div").text().trim();
-    const artist = $result("p span").text().trim();
-    const coverImage = $result("img").first().attr("src");
-
-    const mp3Link = $result("a").filter((i, el) => {
-      const href = $result(el).attr("href");
-      const text = $result(el).text();
-      return href && href.includes("/dl?token=") && text.includes("Download Mp3");
-    }).first().attr("href");
-
-    const coverLink = $result("a").filter((i, el) => {
-      const href = $result(el).attr("href");
-      const text = $result(el).text();
-      return href && href.includes("/dl?token=") && text.includes("Download Cover");
-    }).first().attr("href");
-
-    return {
-      title: songTitle,
-      artist,
-      coverImage,
-      mp3DownloadLink: mp3Link || null,
-      coverDownloadLink: coverLink || null,
-      url
-    };
-  } catch (err) {
-    console.error("Spotify scrape error:", err.message);
-    throw new Error("Falha ao baixar música do Spotify");
+    return response.data;
+  } catch (error) {
+    console.error("Erro metadata:", error.message);
+    throw new Error("Falha ao obter metadata da música");
   }
 }
 
 /* =====================================================
-   🔍 Pesquisa Spotify via Nayan
-   GET /download/spotify/search?q=TERMO&limit=10
+   🟩 2 — GERAR LINK DO DOWNLOAD (SEM BASE64)
    ===================================================== */
-router.get('/search', async (req, res) => {
-  const query = req.query.q || req.query.name;
-  const limit = Number(req.query.limit || 10);
+function generateDownloadLink(track) {
+  const id = track.id || extractSpotifyID(track.url);
+  if (!id) return null;
 
-  if (!query) {
+  const title = encodeURIComponent(track.title || "Unknown");
+  const artist = encodeURIComponent(track.artist || "Unknown");
+
+  return `https://cdn-spotify-247.zm.io.vn/download/${id}/syaiiganteng?name=${title}&artist=${artist}`;
+}
+
+/* =====================================================
+   🔍 /search — retorna lista completa
+   ===================================================== */
+router.get("/search", async (req, res) => {
+  const q = req.query.q;
+
+  if (!q)
     return res.status(400).json({
       ...API_NOTE,
-      status: 'error',
-      message: 'Parâmetro "q" é obrigatório (ex: ?q=lil peep)'
+      status: "error",
+      message: 'Parâmetro "q" é obrigatório'
     });
-  }
 
   try {
-    const response = await axios.get('https://nayan-video-downloader.vercel.app/spotify-search', {
-      params: { name: query, limit }
-    });
+    const data = await getSongDetails(q);
 
-    if (!response.data || response.data.status !== 200) {
-      return res.status(502).json({
-        ...API_NOTE,
-        status: 'error',
-        message: 'Falha ao obter dados externos',
-        external: response.data || null
-      });
-    }
+    const results = data.songs || data.results || (data.result ? [data.result] : [data]);
 
     return res.status(200).json({
       ...API_NOTE,
-      status: 'success',
-      message: 'Pesquisa realizada com sucesso',
-      results: response.data.results
+      status: "success",
+      results
     });
 
-  } catch (error) {
+  } catch (e) {
     return res.status(500).json({
       ...API_NOTE,
-      status: 'error',
-      message: error.message
+      status: "error",
+      message: e.message
     });
   }
 });
 
 /* =====================================================
-   🔽 Download Spotify
-   GET /download/spotify/download?url=LINK
+   🔽 /download — metadata + link REAL
    ===================================================== */
-router.get('/download', async (req, res) => {
-  const spotifyUrl = req.query.url;
-  if (!spotifyUrl) return res.status(400).json({ ...API_NOTE, status: 'error', message: 'Parâmetro "url" é obrigatório' });
+router.get("/download", async (req, res) => {
+  const url = req.query.url;
+
+  if (!url)
+    return res.status(400).json({
+      ...API_NOTE,
+      status: "error",
+      message: 'Parâmetro "url" é obrigatório'
+    });
 
   try {
-    // Aqui você precisa de um serviço de bypass para o Turnstile
-    // Ex: solveBypass() -> token
-    const turnstileToken = "FAKE_TOKEN"; // substitua pelo token real
-    const data = await scrapeSpotify(spotifyUrl, turnstileToken);
+    const meta = await getSongDetails(url);
+
+    const track =
+      meta.songs?.[0] ||
+      meta.results?.[0] ||
+      meta.result ||
+      meta;
+
+    const downloadLink = generateDownloadLink(track);
 
     return res.status(200).json({
       ...API_NOTE,
-      status: 'success',
-      message: 'Música obtida com sucesso',
-      result: data
+      status: "success",
+      metadata: track,
+      download: downloadLink
     });
 
-  } catch (error) {
-    return res.status(500).json({ ...API_NOTE, status: 'error', message: error.message });
+  } catch (e) {
+    return res.status(500).json({
+      ...API_NOTE,
+      status: "error",
+      message: e.message
+    });
   }
 });
 
 /* =====================================================
-   ▶ Play Spotify (pesquisa + download)
-   GET /download/spotify/playspotify?q=NOME
+   ▶ /playspotify — pesquisa → pega 1º → retorna link
    ===================================================== */
-router.get('/playspotify', async (req, res) => {
-  const query = req.query.q || req.query.name;
-  if (!query) return res.status(400).json({ ...API_NOTE, status: 'error', message: 'Parâmetro "q" é obrigatório' });
+router.get("/playspotify", async (req, res) => {
+  const q = req.query.q;
+
+  if (!q)
+    return res.status(400).json({
+      ...API_NOTE,
+      status: "error",
+      message: 'Parâmetro "q" é obrigatório'
+    });
 
   try {
-    // Pesquisa primeiro via Nayan
-    const searchResponse = await axios.get('https://nayan-video-downloader.vercel.app/spotify-search', { params: { name: query, limit: 1 } });
-    if (!searchResponse.data?.results?.length) return res.status(404).json({ ...API_NOTE, status: 'error', message: 'Nenhum resultado encontrado' });
+    const s = await getSongDetails(q);
 
-    const trackUrl = searchResponse.data.results[0].link;
+    const track =
+      s.songs?.[0] ||
+      s.results?.[0] ||
+      s.result ||
+      s;
 
-    // Baixa via Spotimate
-    const turnstileToken = "FAKE_TOKEN"; // substitua pelo token real
-    const data = await scrapeSpotify(trackUrl, turnstileToken);
+    if (!track)
+      return res.status(404).json({
+        ...API_NOTE,
+        status: "error",
+        message: "Nenhuma música encontrada"
+      });
+
+    const downloadLink = generateDownloadLink(track);
 
     return res.status(200).json({
       ...API_NOTE,
-      status: 'success',
-      message: 'Música encontrada e baixada com sucesso',
-      result: data
+      status: "success",
+      metadata: track,
+      download: downloadLink
     });
 
-  } catch (error) {
-    return res.status(500).json({ ...API_NOTE, status: 'error', message: error.message });
+  } catch (e) {
+    return res.status(500).json({
+      ...API_NOTE,
+      status: "error",
+      message: e.message
+    });
   }
 });
 
