@@ -48,7 +48,7 @@ const youtubeStalk = require("./arquivos/youtube-stalk");
 
 const youtubeRoutes = require('./arquivos/YouTube');
 const memesRouter = require("./arquivos/memes");
-
+const emojimix = require('./arquivos/emojimix');
 const tiktokRouter = require('./arquivos/tiktok.js');
 const wallpapersearchRouter = require('./arquivos/wallpapersearch');
 const wallpapersearch2Router = require('./arquivos/wallpapersearch2');
@@ -208,6 +208,7 @@ app.use('/simbolos', simbolos);
 app.use("/pesquisa/significadonome", significadonomeRouter);
 app.use("/book", bookRouter);
 const icmsRouter = require("./arquivos/icms"); 
+app.use('/emojimix', emojimix);
 app.use("/accuweather", accuweather);
 app.use("/americanas", americanas);
 app.use("/fatos", fatos);
