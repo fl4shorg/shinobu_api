@@ -264,6 +264,7 @@ app.use("/api/tools/skiplink", skiplink);
 app.use('/canvas/mclovin', require('./canvas/mclovin')); // <- aqui
 app.use("/tools/antiporno", antiporno);
 app.use("/tools/correio", rastreioRouter);
+app.use('/canvas/bolsonaro', require('./canvas/bolsonaro'));
 app.use("/tools/icms", icmsRouter);
 app.use('/jornal/cnn', cnnRoute);
 app.use('/upload/catbox', catboxRouter);
