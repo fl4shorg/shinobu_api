@@ -255,7 +255,7 @@ app.use("/", gdlink);
 app.use('/jornal/estadao', estadaoRouter);
 app.use('/doramas', doramasRoutes);
 // Usar com app.use no mesmo estilo dos outros
-app.use("/ping", pingRouter);
+app.use("/canvas/ping", pingRouter);
 app.use("/search/steam", require("./arquivos/steam"));
 app.use("/api/tools/skiplink", skiplink);
 app.use("/tools/antiporno", antiporno);
