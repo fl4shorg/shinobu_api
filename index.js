@@ -261,6 +261,7 @@ app.use("/canvas/paint", paint);
 app.use("/canvas/ping", pingRouter);
 app.use("/search/steam", require("./arquivos/steam"));
 app.use("/api/tools/skiplink", skiplink);
+app.use('/canvas/amongus', require('./canvas/amongus'));
 app.use('/canvas/mclovin', require('./canvas/mclovin')); // <- aqui
 app.use("/tools/antiporno", antiporno);
 app.use("/tools/correio", rastreioRouter);
