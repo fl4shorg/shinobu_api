@@ -257,7 +257,7 @@ app.use('/jornal/estadao', estadaoRouter);
 app.use('/doramas', doramasRoutes);
 // Usar com app.use no mesmo estilo dos outros
 
-app.use("/paint", paint);
+app.use("/canvas/paint", paint);
 app.use("/canvas/ping", pingRouter);
 app.use("/search/steam", require("./arquivos/steam"));
 app.use("/api/tools/skiplink", skiplink);
