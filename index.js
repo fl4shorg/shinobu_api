@@ -5,6 +5,8 @@ const axios = require('axios');
 const cors = require("cors");
 const cheerio = require("cheerio");
 const fileUpload = require("express-fileupload");
+const pingRouter = require("./canvas/ping");
+
 const { identificarMusica } = require("./arquivos/shazam");
 const app = express();
 const path = require('path');
@@ -253,6 +255,7 @@ app.use("/", gdlink);
 app.use('/jornal/estadao', estadaoRouter);
 app.use('/doramas', doramasRoutes);
 // Usar com app.use no mesmo estilo dos outros
+app.use("/ping", pingRouter);
 app.use("/search/steam", require("./arquivos/steam"));
 app.use("/api/tools/skiplink", skiplink);
 app.use("/tools/antiporno", antiporno);
