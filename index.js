@@ -338,6 +338,25 @@ app.use("/stalk/youtube", youtubeStalk);
 app.use('/search/xvideos', searchRouter);
 app.use('/chatgpt', require('./arquivos/chatgpt'))
 app.use('/', require('./arquivos/qwen'));
+app.use('/canvas/rank', require('./canvas/rank'));
+app.use('/canvas/rank2', require('./canvas/rank2'));
+app.use('/canvas/welcome1', require('./canvas/welcome1'));
+app.use('/canvas/welcome2', require('./canvas/welcome2'));
+app.use('/canvas/goodbye', require('./canvas/goodbye'));
+app.use('/canvas/musicacardspotify', require('./canvas/musicacardspotify'));
+app.use('/canvas/levelup', require('./canvas/levelup'));
+app.use('/canvas/horny', require('./canvas/horny'));
+app.use('/canvas/patrick', require('./canvas/patrick'));
+app.use('/canvas/burn', require('./canvas/burn'));
+app.use('/canvas/musicardquartz', require('./canvas/musicardquartz'));
+app.use('/canvas/musicardclasic', require('./canvas/musicardclasic'));
+app.use('/canvas/musicardclassicpro', require('./canvas/musicardclassicpro'));
+app.use('/canvas/musicarddynamic', require('./canvas/musicarddynamic'));
+app.use('/canvas/musicardonepiece', require('./canvas/musicardonepiece'));
+app.use('/canvas/musicardvector', require('./canvas/musicardvector'));
+app.use('/canvas/ship', require('./canvas/ship'));
+app.use('/canvas/fakeinstagram', require('./canvas/fakeinstagram'));
+app.use('/canvas/musify', require('./canvas/musify'));
 app.use('/lamacode', lamacodeRouter);
 app.use('/deepseek', require('./arquivos/deepseek'));
 // Rota StickerWA
