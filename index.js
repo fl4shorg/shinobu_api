@@ -212,6 +212,7 @@ app.use('/simbolos', simbolos);
 app.use("/pesquisa/significadonome", significadonomeRouter);
 app.use("/book", bookRouter);
 const icmsRouter = require("./arquivos/icms"); 
+app.use("/canvas/welcome4", require("./canvas/welcome4"));
 app.use('/emojimix', emojimix);
 app.use("/accuweather", accuweather);
 app.use("/americanas", americanas);
@@ -325,6 +326,7 @@ app.use('/search/bingsearch', require('./arquivos/bingsearch'));
 // Categoria Pesquisa //
 app.use('/api/dafont', require('./arquivos/dafont'));
 const dorama = require("./arquivos/dorama");
+app.use("/canvas/musicardiphone", require("./canvas/musicardiphone"));
 app.use("/jornal/g1", g1);
 app.use("/jornal/poder360", poder360);
 app.use("/api", dorama);
