@@ -41,7 +41,7 @@ const imdbRouter = require("./arquivos/imdb");
 
 const g1 = require("./arquivos/g1");
 
-
+const imagemia = require('./arquivos/imagemia');
 const youtube2Routes = require('./arquivos/YouTube2');
 
 
@@ -63,6 +63,7 @@ const tiktok2Router = require(
   
   './arquivos/tiktok2');
 const snackRouter = require("./arquivos/snackvideo");
+app.use('/ia/imagemia', imagemia);
 const frasesanime = require("./arquivos/frasesanime");
 const pinterestRouter = require('./arquivos/Pinterest');
 const hentaiRouter = require("./arquivos/hentai");
