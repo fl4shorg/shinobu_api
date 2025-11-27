@@ -18,7 +18,10 @@ router.get("/bratvideo", async (req, res) => {
 
   try {
     // Monta URL: a API espera espaços codificados (encodeURIComponent faz isso)
-    const apiUrl = `https://api.ypnk.dpdns.org/api/video/bratv?text=${encodeURIComponent(text)}`;
+    
+    //https://api.ypnk.dpdns.org
+    // https://api.yupra.my.id/api/video/bratv?text=flash
+    const apiUrl = `https://api.yupra.my.id/api/video/bratv?text=${encodeURIComponent(text)}`;
 
     // Primeiro tenta pegar direto em stream (muitos endpoints retornam stream direto)
     let apiResp;
