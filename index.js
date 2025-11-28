@@ -315,7 +315,7 @@ app.use('/api', alldownload);
 app.use("/", ffStalkRouter);
 app.use('/api/plaquinha', require('./canvas/plaquinha'));
 app.use('/pesquisa/wattpad', require('./arquivos/wattpad'));
-
+app.use("/canvas/welcome3", require("./canvas/welcome3"));
 app.use("/tools", screenshot);
 app.use('/stalk/ttstalk', require('./arquivos/ttstalk'));
 app.use("/download/instagram2", instagramRoute);
