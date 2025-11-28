@@ -388,8 +388,10 @@ const playstoreRoutes = require('./arquivos/playstore');
 app.use('/playstore', playstoreRoutes);
 
 app.use('/savepin', savePinRouter);
-
-
+app.use("/canvas/goodbye3", require("./canvas/goodbye3"));
+app.use("/canvas/level", require("./canvas/level"));
+app.use("/canvas/ping2", require("./canvas/ping2"));
+app.use("/canvas/goodbye2", require("./canvas/goodbye2"));
 app.use('/search/pinterest', pinterestRouter);
 app.use("/search/snack", snackRouter);
 
