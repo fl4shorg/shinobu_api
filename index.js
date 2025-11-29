@@ -6,6 +6,7 @@ const cors = require("cors");
 const cheerio = require("cheerio");
 const fileUpload = require("express-fileupload");
 const pingRouter = require("./canvas/ping");
+const hermitwhite = require("./routes/hermitwhite");
 
 const { identificarMusica } = require("./arquivos/shazam");
 const app = express();
@@ -322,6 +323,7 @@ app.use("/download/instagram2", instagramRoute);
 app.use("/genshin", genshin);
 app.use('/stalk/genshinstalk', require('./arquivos/genshinstalk'));
 app.use('/search/bingimage', require('./arquivos/bing'));
+app.use("/id/hermitwhite", hermitwhite);
 app.use('/search/bingsearch', require('./arquivos/bingsearch'));
 // Categoria Pesquisa //
 app.use('/api/dafont', require('./arquivos/dafont'));
